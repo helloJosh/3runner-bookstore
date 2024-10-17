@@ -34,7 +34,7 @@ public class CouponMemberController {
     }
 
     /**
-     * 맴버 쿠폰 전체 읽기.
+     * 맴버 쿠폰 등록.
      *
      * @param memberId 맴버아이디
      * @return 쿠폰폼dto 리스트

@@ -1,5 +1,6 @@
 package com.nhnacademy.bookstore.purchase.coupon.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.bookstore.entity.coupon.Coupon;
 import com.nhnacademy.bookstore.entity.coupon.enums.CouponStatus;
 import com.nhnacademy.bookstore.entity.member.Member;
@@ -15,6 +16,7 @@ import com.nhnacademy.bookstore.purchase.coupon.feign.dto.response.ReadCouponFor
 import com.nhnacademy.bookstore.purchase.coupon.repository.CouponRepository;
 import com.nhnacademy.bookstore.purchase.coupon.service.CouponMemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,9 @@ public class CouponMemberServiceImpl implements CouponMemberService {
     private final CouponControllerClient couponControllerClient;
     private final CouponRepository couponRepository;
     private final MemberRepository memberRepository;
+    private final RabbitTemplate rabbitTemplate;
+    private static final String QUEUE_NAME_1 = "3RUNNER-COUPON-ISSUED";
+
 
     /**
      * {@inheritDoc}
@@ -168,6 +173,8 @@ public class CouponMemberServiceImpl implements CouponMemberService {
         if (couponRepository.findCouponByCouponFormId(matchingCoupon.couponFormId()).isPresent()) {
             throw new CouponDuplicatedRegisterException("한번 등록한 쿠폰은 두번 등록할수 없습니다.");
         }
+
+        rabbitTemplate.convertAndSend(QUEUE_NAME_1, code);
 
         Coupon coupon = new Coupon(
                 matchingCoupon.couponFormId(),
